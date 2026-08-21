@@ -27,7 +27,6 @@ __pycache__/
 /.config.old
 
 # Local editor, IDE, and agent state
-/.vscode/
 /.agents/
 /.codex/
 *.code-workspace

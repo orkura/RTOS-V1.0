@@ -1,0 +1,26 @@
+{
+  "cmake.cmakePath": "C:/msys64/ucrt64/bin/cmake.exe",
+  "cmake.useCMakePresets": "always",
+  "cmake.configureOnOpen": false,
+  "cmake.copyCompileCommands": "${workspaceFolder}/build/compile_commands.json",
+  "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json",
+  "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+  "C_Cpp.debugShortcut": false,
+  "files.watcherExclude": {
+    "**/build/**": true
+  },
+  "terminal.integrated.profiles.windows": {
+    "UCRT64": {
+      "path": "C:\\msys64\\usr\\bin\\bash.exe",
+      "args": ["--login", "-i"],
+      "env": {
+        "MSYSTEM": "UCRT64",
+        "CHERE_INVOKING": "1",
+        "VIRTUAL_ENV": null,
+        "_OLD_VIRTUAL_PATH": null,
+        "_OLD_VIRTUAL_PYTHONHOME": null
+      }
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "UCRT64"
+}

@@ -1,0 +1,24 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug STM32F4 (J-Link)",
+      "type": "cortex-debug",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "Build STM32F4",
+      "executable": "${workspaceFolder}/build/stm32f4/rtthread-stm32f4.elf",
+      "servertype": "jlink",
+      "serverpath": "D:/App/Code/JLink/JLink_V968a/JLinkGDBServerCL.exe",
+      "armToolchainPath": "C:/msys64/ucrt64/bin",
+      "gdbPath": "C:/msys64/ucrt64/bin/gdb-multiarch.exe",
+      "device": "STM32F407ZG",
+      "interface": "swd",
+      "serverArgs": [
+        "-speed",
+        "4000"
+      ],
+      "runToEntryPoint": "main"
+    }
+  ]
+}
