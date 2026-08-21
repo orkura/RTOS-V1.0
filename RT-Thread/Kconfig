@@ -1,0 +1,6 @@
+menu "RT-Thread"
+
+rsource "src/Kconfig"
+rsource "components/Kconfig"
+
+endmenu

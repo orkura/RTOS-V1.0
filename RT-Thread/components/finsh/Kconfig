@@ -1,0 +1,23 @@
+menu "FinSH shell"
+
+config RT_USING_FINSH
+    bool "Enable FinSH shell"
+    depends on RT_USING_CONSOLE && RT_USING_DEVICE
+    default y
+
+config FINSH_USING_SYMTAB
+    bool "Enable FinSH symbol table"
+    depends on RT_USING_FINSH
+    default y
+
+config FINSH_USING_DESCRIPTION
+    bool "Enable FinSH command descriptions"
+    depends on RT_USING_FINSH
+    default y
+
+config MSH_USING_BUILT_IN_COMMANDS
+    bool "Enable MSH built-in commands"
+    depends on RT_USING_FINSH
+    default y
+
+endmenu

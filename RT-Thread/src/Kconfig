@@ -1,0 +1,136 @@
+menu "Kernel basics"
+
+config RT_THREAD_PRIORITY_MAX
+    int "Maximum thread priorities"
+    range 8 256
+    default 32
+
+config RT_TICK_PER_SECOND
+    int "System ticks per second"
+    range 10 10000
+    default 1000
+
+config RT_ALIGN_SIZE
+    int "Memory alignment size"
+    range 1 16
+    default 4
+
+config RT_NAME_MAX
+    int "Maximum RT-Thread object name length"
+    range 4 255
+    default 8
+
+endmenu
+
+menu "Startup"
+
+config RT_USING_COMPONENTS_INIT
+    bool "Run component initialization"
+    default y
+
+config RT_USING_USER_MAIN
+    bool "Run user main() in the main thread"
+    default y
+
+config RT_MAIN_THREAD_STACK_SIZE
+    int "Main thread stack size (bytes)"
+    range 256 8192
+    default 1024
+
+endmenu
+
+menu "Diagnostics and hooks"
+
+config RT_DEBUG
+    bool "Enable RT-Thread debug output"
+    default n
+
+config RT_DEBUG_INIT
+    int "Initialization debug level"
+    range 0 2
+    default 0
+
+config RT_USING_OVERFLOW_CHECK
+    bool "Check thread stack overflow"
+    default n
+
+config RT_USING_HOOK
+    bool "Enable kernel hooks"
+    default n
+
+config RT_USING_IDLE_HOOK
+    bool "Enable idle hook"
+    depends on RT_USING_HOOK
+    default n
+
+endmenu
+
+menu "Software timers"
+
+config RT_USING_TIMER_SOFT
+    bool "Enable software timers"
+    default n
+
+config RT_TIMER_THREAD_PRIO
+    int "Timer thread priority"
+    depends on RT_USING_TIMER_SOFT
+    range 0 31
+    default 4
+
+config RT_TIMER_THREAD_STACK_SIZE
+    int "Timer thread stack size (bytes)"
+    depends on RT_USING_TIMER_SOFT
+    range 256 8192
+    default 1024
+
+endmenu
+
+menu "Inter-process communication"
+
+config RT_USING_SEMAPHORE
+    bool "Semaphores"
+    default y
+
+config RT_USING_MUTEX
+    bool "Mutexes"
+    default n
+
+config RT_USING_EVENT
+    bool "Events"
+    default n
+
+config RT_USING_MAILBOX
+    bool "Mailboxes"
+    default y
+
+config RT_USING_MESSAGEQUEUE
+    bool "Message queues"
+    default n
+
+endmenu
+
+menu "Dynamic memory"
+
+config RT_USING_HEAP
+    bool "RT-Thread heap"
+    default y
+
+config RT_USING_SMALL_MEM
+    bool "Small memory allocator"
+    depends on RT_USING_HEAP
+    default y
+
+config RT_USING_SMALL_MEM_AS_HEAP
+    bool "Use small memory allocator as the heap"
+    depends on RT_USING_SMALL_MEM
+    default y
+
+config RT_USING_MEMPOOL
+    bool "Memory pools"
+    default n
+
+config RT_USING_TINY_SIZE
+    bool "Optimize for tiny code size"
+    default n
+
+endmenu

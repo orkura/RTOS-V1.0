@@ -1,0 +1,5 @@
+mainmenu "RT-Thread feature configuration"
+
+# Each top-level project directory owns its own Kconfig tree, just as it owns
+# its CMakeLists.txt tree. BSP and Applications trees can be added here later.
+rsource "RT-Thread/Kconfig"

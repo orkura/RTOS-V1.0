@@ -1,0 +1,23 @@
+menu "Components"
+
+menu "Console"
+
+config RT_USING_CONSOLE
+    bool "System console"
+    default y
+
+config RT_CONSOLEBUF_SIZE
+    int "Console buffer size (bytes)"
+    depends on RT_USING_CONSOLE
+    range 64 2048
+    default 256
+
+endmenu
+
+config RT_USING_DEVICE
+    bool "RT-Thread device framework"
+    default y
+
+rsource "finsh/Kconfig"
+
+endmenu
