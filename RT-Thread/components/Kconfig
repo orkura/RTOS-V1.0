@@ -12,6 +12,11 @@ config RT_CONSOLEBUF_SIZE
     range 64 2048
     default 256
 
+config RT_CONSOLE_DEVICE_NAME
+    string "Console device name"
+    depends on RT_USING_CONSOLE && RT_USING_DEVICE
+    default "console"
+
 endmenu
 
 config RT_USING_DEVICE

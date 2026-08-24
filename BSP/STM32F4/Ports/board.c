@@ -55,16 +55,17 @@ void bsp_systick_handler(void)
 }
 
 #if defined(RT_USING_USER_MAIN) && defined(RT_USING_HEAP)
-static rt_uint8_t g_rt_heap[BSP_RT_HEAP_SIZE];
+extern rt_uint8_t __heap_start__;
+extern rt_uint8_t __heap_end__;
 
 RT_WEAK void *rt_heap_begin_get(void)
 {
-    return g_rt_heap;
+    return &__heap_start__;
 }
 
 RT_WEAK void *rt_heap_end_get(void)
 {
-    return g_rt_heap + sizeof(g_rt_heap);
+    return &__heap_end__;
 }
 #endif
 

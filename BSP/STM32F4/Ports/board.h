@@ -9,9 +9,6 @@
 extern "C" {
 #endif
 
-#define BSP_RT_HEAP_SIZE            (15U * 1024U)
-
-#define BSP_UART1_DEVICE_NAME       "uart1"
 #define BSP_UART1_RX_BUFFER_SIZE    256U
 #define BSP_UART1_IRQ_PRIORITY       5U
 

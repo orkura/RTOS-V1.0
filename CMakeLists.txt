@@ -13,7 +13,7 @@ if(TARGET_BSP STREQUAL "")
         "TARGET_BSP is required. Use -DTARGET_BSP=cc2538 or stm32f4.")
 endif()
 
-project(rtos_v1_0 LANGUAGES C ASM)
+project(rtos LANGUAGES C ASM)
 
 if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
     message(FATAL_ERROR "This project currently supports the GNU Arm Embedded Toolchain only.")
@@ -29,16 +29,23 @@ if(NOT EXISTS "${RTTHREAD_CONFIG_HEADER}")
 endif()
 
 # Common configuration intentionally excludes BSP-private include paths.
-add_library(rtos_build_config INTERFACE)
-target_include_directories(rtos_build_config INTERFACE
+add_library(rtos_compile_settings INTERFACE)
+target_include_directories(rtos_compile_settings INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/RT-Thread/include"
     "${CMAKE_CURRENT_SOURCE_DIR}/RT-Thread/components/finsh")
-target_compile_features(rtos_build_config INTERFACE c_std_11)
-target_compile_options(rtos_build_config INTERFACE
+target_compile_features(rtos_compile_settings INTERFACE c_std_11)
+target_compile_options(rtos_compile_settings INTERFACE
+    # Debug information
     -g3
+
+    # Section-level dead-code elimination
     -ffunction-sections
     -fdata-sections
+
+    # C language behavior
     -fno-common
+
+    # Diagnostics
     -Wall
     -Wextra)
 
@@ -70,9 +77,9 @@ configure_file(
     "${RTTHREAD_CONFIG_HEADER}"
     "${RTTHREAD_CONFIG_INCLUDE_DIR}/rtconfig.h"
     COPYONLY)
-target_include_directories(rtos_build_config INTERFACE
+target_include_directories(rtos_compile_settings INTERFACE
     "${RTTHREAD_CONFIG_INCLUDE_DIR}")
-target_compile_options(rtos_build_config INTERFACE ${SELECTED_BSP_CPU_COMPILE_OPTIONS})
+target_compile_options(rtos_compile_settings INTERFACE ${SELECTED_BSP_CPU_COMPILE_OPTIONS})
 
 add_subdirectory(RT-Thread)
 add_subdirectory(Applications)
@@ -89,13 +96,20 @@ set_target_properties(rtthread PROPERTIES
     SUFFIX ".elf")
 
 target_link_options(rtthread PRIVATE
+    # CPU and ABI
     ${SELECTED_BSP_CPU_LINK_OPTIONS}
+
+    # C runtime
     --specs=nano.specs
+
+    # Memory layout
     "-T${SELECTED_BSP_LINKER_SCRIPT}"
+
+    # Link-time cleanup and reports
     -Wl,--gc-sections
     "-Wl,-Map=${RTTHREAD_MAP_FILE}"
     -Wl,--no-warn-rwx-segments)
-target_link_libraries(rtthread PRIVATE rtos_build_config m)
+target_link_libraries(rtthread PRIVATE rtos_compile_settings m)
 
 get_filename_component(ARM_GNU_BIN_DIR "${CMAKE_C_COMPILER}" DIRECTORY)
 find_program(ARM_NONE_EABI_OBJCOPY

@@ -27,7 +27,6 @@ __pycache__/
 /.config.old
 
 # Local editor, IDE, and agent state
-/.agents/
 /.codex/
 *.code-workspace
 
@@ -39,3 +38,6 @@ desktop.ini
 # 暂时不添加CC2538和CC2652
 /BSP/CC2538/
 /BSP/CC2652/
+
+# Docs 中的学习笔记暂时不添加
+/Docs/

@@ -35,7 +35,7 @@ CubeMX 重新生成后，应先比较差异：普通驱动与外设文件可复�
 
 ## 设备接口
 
-- `uart1`：RT-Thread 字符设备及默认控制台。发送为阻塞式，接收采用单字节中断和 256 字节环形缓冲。`DRV_UART_CTRL_CLEAR_RX` 清空接收状态；`DRV_UART_CTRL_GET_RX_DROPS`、`DRV_UART_CTRL_GET_RX_ERRORS` 分别读取环形缓冲溢出数与 HAL 接收错误数。
+- `console`：由 `RT_CONSOLE_DEVICE_NAME` 配置的 RT-Thread 字符设备及默认控制台，当前底层使用 USART1。发送为阻塞式，接收采用单字节中断和 256 字节环形缓冲。`DRV_UART_CTRL_CLEAR_RX` 清空接收状态；`DRV_UART_CTRL_GET_RX_DROPS`、`DRV_UART_CTRL_GET_RX_ERRORS` 分别读取环形缓冲溢出数与 HAL 接收错误数。
 - `rtc`：RT-Thread RTC 设备。`DRV_RTC_CTRL_GET_EPOCH` 和 `DRV_RTC_CTRL_SET_EPOCH` 读写 Unix epoch 秒，接受 2000–2099 年范围。首次上电或备份域未标记有效时间时，读取返回 `-RT_EEMPTY`。
 
 `rtconfig.h` 已启用 FinSH MSH 和基础 `help`、`ps`、`free` 命令。应用层应经 RT-Thread 公开 API 使用设备，不直接引用 HAL 或 BSP 私有头文件。
@@ -50,6 +50,6 @@ CubeMX 重新生成后，应先比较差异：普通驱动与外设文件可复�
 
 本目录提供启动汇编和链接脚本，但当前不提供 CMake、Keil 或其他构建工程。后续构建配置必须包含 Cortex-M4 的 RT-Thread 上下文汇编、BSP 启动汇编、链接脚本、已启用的 HAL 源文件、`Ports/` 驱动和 `Applications/main.c`。
 
-构建工程补齐后，最小运行验收为：串口出现 FinSH 提示符；`help`、`ps`、`free` 可运行；`list_device` 显示 `uart1` 与 `rtc`；UART 接收错误后控制台可继续交互；RTC 设置后复位可恢复读取。
+构建工程补齐后，最小运行验收为：串口出现 FinSH 提示符；`help`、`ps`、`free` 可运行；`list_device` 显示 `console` 与 `rtc`；UART 接收错误后控制台可继续交互；RTC 设置后复位可恢复读取。
 
 本目录中的任何特定开发板原理图或引脚资料仅可作为外部测试参考，不构成 BSP 接口或行为约束。

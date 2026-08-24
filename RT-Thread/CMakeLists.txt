@@ -15,6 +15,7 @@ endforeach()
 # Keep this target as an OBJECT library: component-init and FinSH table objects
 # must reach the final linker script unchanged.
 add_library(rtthread_kernel OBJECT
+    # RT-Thread kernel core
     "${CMAKE_CURRENT_LIST_DIR}/src/clock.c"
     "${CMAKE_CURRENT_LIST_DIR}/src/components.c"
     "${CMAKE_CURRENT_LIST_DIR}/src/cpu.c"
@@ -29,15 +30,22 @@ add_library(rtthread_kernel OBJECT
     "${CMAKE_CURRENT_LIST_DIR}/src/slab.c"
     "${CMAKE_CURRENT_LIST_DIR}/src/thread.c"
     "${CMAKE_CURRENT_LIST_DIR}/src/timer.c"
+
+    # FinSH shell
     "${CMAKE_CURRENT_LIST_DIR}/components/finsh/cmd.c"
     "${CMAKE_CURRENT_LIST_DIR}/components/finsh/msh.c"
     "${CMAKE_CURRENT_LIST_DIR}/components/finsh/msh_parse.c"
     "${CMAKE_CURRENT_LIST_DIR}/components/finsh/shell.c"
+
+    # BSP-selected CPU architecture port
     ${SELECTED_RTTHREAD_PORT_SOURCES})
 
-target_link_libraries(rtthread_kernel PRIVATE rtos_build_config)
+target_link_libraries(rtthread_kernel PRIVATE rtos_compile_settings)
 target_include_directories(rtthread_kernel PRIVATE
+    # CPU-port public headers
     ${SELECTED_RTTHREAD_PORT_INCLUDE_DIRS}
+
+    # CPU-port implementation-private headers
     ${SELECTED_RTTHREAD_PORT_PRIVATE_INCLUDE_DIRS})
 target_compile_options(rtthread_kernel PRIVATE
     -Wno-unused-parameter

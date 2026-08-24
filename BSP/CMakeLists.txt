@@ -28,6 +28,7 @@ foreach(_required_bsp_value IN ITEMS
     endif()
 endforeach()
 
+# Publish the selected BSP contract to the top-level build.
 set(SELECTED_BSP_TARGET "${BSP_SELECTED_TARGET}" PARENT_SCOPE)
 set(SELECTED_BSP_LINKER_SCRIPT "${BSP_SELECTED_LINKER_SCRIPT}" PARENT_SCOPE)
 set(SELECTED_BSP_CPU_COMPILE_OPTIONS "${BSP_SELECTED_CPU_COMPILE_OPTIONS}" PARENT_SCOPE)

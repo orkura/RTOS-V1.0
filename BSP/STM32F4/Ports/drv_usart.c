@@ -5,6 +5,11 @@
 
 #include "usart.h"
 
+#if defined(RT_USING_DEVICE) && defined(RT_USING_CONSOLE)
+
+_Static_assert(sizeof(RT_CONSOLE_DEVICE_NAME) <= RT_NAME_MAX,
+               "RT_CONSOLE_DEVICE_NAME exceeds RT_NAME_MAX");
+
 struct stm32_uart_device
 {
     struct rt_device parent;
@@ -272,7 +277,7 @@ static int stm32_uart1_device_register(void)
     g_uart1_device.parent.control = stm32_uart1_control;
 
     result = rt_device_register(&g_uart1_device.parent,
-                                BSP_UART1_DEVICE_NAME,
+                                RT_CONSOLE_DEVICE_NAME,
                                 RT_DEVICE_FLAG_RDWR |
                                 RT_DEVICE_FLAG_STREAM |
                                 RT_DEVICE_FLAG_INT_RX);
@@ -281,7 +286,7 @@ static int stm32_uart1_device_register(void)
         return result;
     }
 
-    (void)rt_console_set_device(BSP_UART1_DEVICE_NAME);
+    (void)rt_console_set_device(RT_CONSOLE_DEVICE_NAME);
     if (rt_console_get_device() != &g_uart1_device.parent)
     {
         return -RT_ERROR;
@@ -290,3 +295,5 @@ static int stm32_uart1_device_register(void)
     return RT_EOK;
 }
 INIT_BOARD_EXPORT(stm32_uart1_device_register);
+
+#endif /* RT_USING_DEVICE && RT_USING_CONSOLE */

@@ -18,19 +18,10 @@
                 "CMAKE_TRY_COMPILE_TARGET_TYPE": "STATIC_LIBRARY",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
 
-                "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/arm-none-eabi-gcc.exe",
+                "CMAKE_MAKE_PROGRAM": "C:/msys64/ucrt64/bin/ninja.exe",
                 "CMAKE_ASM_COMPILER": "C:/msys64/ucrt64/bin/arm-none-eabi-gcc.exe",
-                "CMAKE_MAKE_PROGRAM": "C:/msys64/ucrt64/bin/ninja.exe"
-            }
-        },
-        {
-            "name": "stm32f4",
-            "displayName": "STM32F4",
-            "description": "Build the STM32F4 BSP in build/stm32f4.",
-
-            "inherits": "base",
-            "cacheVariables": {
-                "TARGET_BSP": "stm32f4"
+                "CMAKE_C_COMPILER": "C:/msys64/ucrt64/bin/arm-none-eabi-gcc.exe"
+                
             }
         },
         {
@@ -41,6 +32,16 @@
             "inherits": "base",
             "cacheVariables": {
                 "TARGET_BSP": "cc2538"
+            }
+        },
+        {
+            "name": "stm32f4",
+            "displayName": "STM32F4",
+            "description": "Build the STM32F4 BSP in build/stm32f4.",
+
+            "inherits": "base",
+            "cacheVariables": {
+                "TARGET_BSP": "stm32f4"
             }
         }
     ],

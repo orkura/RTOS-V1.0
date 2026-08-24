@@ -24,7 +24,7 @@ V1.0/
 ├─ CMakePresets.json     STM32F4、CC2538 等 BSP 的构建预设
 ├─ Kconfig               系统功能配置入口
 ├─ rtconfig.h            由 .config 生成的 RT-Thread 编译配置
-├─ Scripts               存放脚本，如编译、下载
+└─ Scripts               存放脚本，如编译、下载
 ```
 
 系统功能裁剪配置过程为：`Kconfig`（含各级子 `Kconfig`）→ `menuconfig` → `.config` → `Scripts/kconfig_to_rtconfig.py` → `rtconfig.h`。CMake 只负责选择 BSP 和组织编译；`board.h` 保存板卡固定硬件参数，并通过 `rtthread.h` 读取 `rtconfig.h` 中的宏定义。
@@ -64,6 +64,29 @@ RT-Thread 应用或组件 → RT-Thread/include/rtthread.h(rt_device_find/open/r
 ```
 
 在工程构建中，CMake 通过 `TARGET_BSP` 选择并切换目标 BSP，并决定该 BSP 的启动文件、链接脚本、CPU 配置和驱动源码。`BSP/<boards>/Ports/board.h` 用于描述板卡固定硬件参数，并可读取顶层 `rtconfig.h` 的配置宏以控制板级驱动功能（注意 `board.h` 手动维护配置，只有 `rtconfig.h` 是由 Kconfig 进行维护）。系统通用功能（如 RT-Thread 内核、组件及应用功能）由 Kconfig 配置并生成顶层 `rtconfig.h`，供各层源码进行条件编译与裁剪。
+
+程序启动流程：
+
+```text
+复位入口
+  → RT-Thread entry()
+  → rt_hw_board_init()
+  → 时钟、Tick、堆、底层外设初始化
+  → INIT_BOARD_EXPORT() 注册设备
+  → 启动调度器和 main 线程
+  → Applications/main.c
+```
+
+设备调用路径则是：
+
+```text
+Application / Component
+  → rt_device_find/open/read/write/control
+  → RT-Thread device 层
+  → BSP/Ports 设备适配
+  → HAL 或芯片厂商驱动
+  → 硬件
+```
 
 ## 工程环境
 
