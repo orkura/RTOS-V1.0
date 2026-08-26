@@ -80,6 +80,13 @@ void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
     GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
+    /*
+     * CubeMX original USART1 interrupt initialization (disabled):
+     * HAL_NVIC_SetPriority(USART1_IRQn, 0, 0);
+     * HAL_NVIC_EnableIRQ(USART1_IRQn);
+     *
+     * Ports/drv_usart.c owns the active priority and IRQ enable operation.
+     */
   /* USER CODE BEGIN USART1_MspInit 1 */
 
   /* USER CODE END USART1_MspInit 1 */
@@ -103,6 +110,12 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
     */
     HAL_GPIO_DeInit(GPIOA, GPIO_PIN_9|GPIO_PIN_10);
 
+    /*
+     * CubeMX original USART1 interrupt de-initialization (disabled):
+     * HAL_NVIC_DisableIRQ(USART1_IRQn);
+     *
+     * USART1 interrupt ownership remains in Ports/drv_usart.c.
+     */
   /* USER CODE BEGIN USART1_MspDeInit 1 */
 
   /* USER CODE END USART1_MspDeInit 1 */

@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RTOS-V1.0 架构图 · Codex 版本</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js" integrity="sha384-en/ztfPSRkGfME4KIm05joYXynqzUgbsG5nMrj/xEFAHXkeZfO3yMK8QQ+mP7p1/" crossorigin="anonymous"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      color-scheme: dark;
+      --bg: #020617;
+      --panel: rgba(15, 23, 42, 0.62);
+      --line: #1e293b;
+      --muted: #94a3b8;
+      --faint: #475569;
+      --cyan: #22d3ee;
+      --emerald: #34d399;
+      --violet: #a78bfa;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --orange: #fb923c;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', 'Microsoft YaHei UI', monospace;
+      background:
+        radial-gradient(circle at 18% 8%, rgba(34, 211, 238, 0.055), transparent 26rem),
+        radial-gradient(circle at 82% 30%, rgba(251, 191, 36, 0.045), transparent 30rem),
+        var(--bg);
+      min-height: 100vh;
+      padding: 2rem;
+      color: white;
+    }
+
+    .container { max-width: 1280px; margin: 0 auto; }
+    .header { margin-bottom: 1.5rem; }
+    .header-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.55rem; }
+    .pulse-dot {
+      width: 12px;
+      height: 12px;
+      flex: 0 0 auto;
+      background: var(--cyan);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.45);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34, 211, 238, 0); }
+      50% { opacity: 0.62; box-shadow: 0 0 0 7px rgba(34, 211, 238, 0.06); }
+    }
+
+    h1 { font-size: 1.55rem; font-weight: 700; letter-spacing: -0.03em; }
+    .subtitle { color: var(--muted); font-size: 0.82rem; margin-left: 1.75rem; line-height: 1.65; }
+    .quick-facts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.9rem 0 0 1.75rem; }
+    .fact {
+      color: #cbd5e1;
+      border: 1px solid #243247;
+      background: rgba(15, 23, 42, 0.58);
+      border-radius: 999px;
+      padding: 0.26rem 0.62rem;
+      font-size: 0.66rem;
+    }
+    .fact b { color: white; font-weight: 600; }
+
+    .diagram-container {
+      background: rgba(15, 23, 42, 0.44);
+      border-radius: 1rem;
+      border: 1px solid var(--line);
+      padding: 1.25rem;
+      overflow-x: auto;
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.18);
+    }
+
+    svg {
+      width: 100%;
+      min-width: 1040px;
+      display: block;
+      font-family: inherit;
+    }
+
+    .region-label { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+    .box-title { fill: white; font-size: 11px; font-weight: 600; text-anchor: middle; }
+    .box-sub { fill: var(--muted); font-size: 8px; text-anchor: middle; }
+    .box-tiny { fill: #64748b; font-size: 7px; text-anchor: middle; }
+    .arrow-label { fill: #94a3b8; font-size: 7px; text-anchor: middle; }
+    .step-text { fill: #dbeafe; font-size: 8px; font-weight: 600; text-anchor: middle; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+
+    .card {
+      background: var(--panel);
+      border-radius: 0.75rem;
+      border: 1px solid var(--line);
+      padding: 1.15rem;
+      min-height: 150px;
+    }
+    .card-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+    .card-dot { width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto; }
+    .card-dot.cyan { background: var(--cyan); }
+    .card-dot.emerald { background: var(--emerald); }
+    .card-dot.violet { background: var(--violet); }
+    .card h3 { font-size: 0.82rem; font-weight: 600; }
+    .card ul { list-style: none; color: var(--muted); font-size: 0.7rem; line-height: 1.6; }
+    .card li { margin-bottom: 0.28rem; }
+    .card code { color: #cbd5e1; font-family: inherit; }
+    .footer { text-align: center; margin-top: 1.25rem; color: var(--faint); font-size: 0.68rem; }
+
+    .toolbar { display: flex; gap: 0.5rem; margin-left: auto; flex-shrink: 0; align-items: center; }
+    .toolbar-toggle {
+      background: transparent;
+      border: none;
+      color: var(--faint);
+      cursor: pointer;
+      font-size: 1.25rem;
+      line-height: 1;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      transition: color 0.2s, background 0.2s;
+    }
+    .toolbar-toggle:hover { color: var(--muted); background: rgba(30, 41, 59, 0.5); }
+    .toolbar-actions { display: none; gap: 0.5rem; }
+    .toolbar.expanded .toolbar-actions { display: flex; }
+    .toolbar-actions button {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid #334155;
+      color: var(--muted);
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.375rem;
+      font-family: inherit;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .toolbar-actions button:hover { background: rgba(51, 65, 85, 0.8); color: white; border-color: #475569; }
+
+    @media (max-width: 900px) {
+      body { padding: 1rem; }
+      .cards { grid-template-columns: 1fr; }
+      .subtitle, .quick-facts { margin-left: 0; }
+    }
+
+    @media print {
+      body { background: #020617; padding: 1rem; }
+      .toolbar { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="report-container">
+    <div class="header">
+      <div class="header-row">
+        <div class="pulse-dot"></div>
+        <h1>RTOS-V1.0 · 构建与运行架构</h1>
+        <div class="toolbar">
+          <div class="toolbar-actions">
+            <button onclick="copyAsImage(this)">📋 Copy</button>
+            <button onclick="downloadPNG(this)">🖼️ PNG</button>
+            <button onclick="downloadPDF(this)">📄 PDF</button>
+          </div>
+          <button class="toolbar-toggle" onclick="this.parentElement.classList.toggle('expanded')" title="导出选项" aria-label="导出选项">⋯</button>
+        </div>
+      </div>
+      <p class="subtitle">RT-Thread Nano 多 BSP 固件 · 将“选什么进入镜像”与“镜像如何运行”分为两个视图</p>
+      <div class="quick-facts" aria-label="项目关键事实">
+        <span class="fact"><b>2</b> 个可构建 BSP</span>
+        <span class="fact"><b>1 kHz</b> 系统 Tick</span>
+        <span class="fact"><b>32</b> 级线程优先级</span>
+        <span class="fact"><b>ELF · HEX · BIN · MAP</b></span>
+      </div>
+    </div>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 1200 1085" role="img" aria-labelledby="diagram-title diagram-desc">
+        <title id="diagram-title">RTOS-V1.0 构建与运行架构图</title>
+        <desc id="diagram-desc">上半部展示 Kconfig 功能裁剪与 CMake BSP 选择如何汇入固件；下半部展示复位启动及应用、内核、BSP、厂商驱动与硬件的分层依赖。</desc>
+        <defs>
+          <marker id="arrow-slate" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#64748b" />
+          </marker>
+          <marker id="arrow-cyan" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#22d3ee" />
+          </marker>
+          <marker id="arrow-emerald" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#34d399" />
+          </marker>
+          <marker id="arrow-violet" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#a78bfa" />
+          </marker>
+          <marker id="arrow-amber" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#fbbf24" />
+          </marker>
+          <marker id="arrow-orange" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#fb923c" />
+          </marker>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+          </pattern>
+          <filter id="soft-glow" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        <!-- Connections are intentionally painted before boxes. -->
+        <!-- Build-time feature-selection flow -->
+        <path d="M 205 105 L 242 105" fill="none" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 367 105 L 402 105" fill="none" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 552 105 L 587 105" fill="none" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 727 105 L 805 137" fill="none" stroke="#fb7185" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+
+        <!-- Build-time hardware-selection flow -->
+        <path d="M 205 205 L 242 205" fill="none" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 367 205 L 402 205" fill="none" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 552 205 L 587 205" fill="none" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 762 205 L 805 174" fill="none" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 995 155 L 1032 155" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+
+        <!-- Runtime startup chain -->
+        <path d="M 305 372 L 321 372" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrow-slate)"/>
+        <path d="M 406 372 L 422 372" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrow-slate)"/>
+        <path d="M 537 372 L 553 372" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrow-slate)"/>
+        <path d="M 668 372 L 684 372" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrow-slate)"/>
+        <path d="M 799 372 L 815 372" fill="none" stroke="#64748b" stroke-width="1.2" marker-end="url(#arrow-slate)"/>
+
+        <!-- Runtime layered dependency flow -->
+        <path d="M 600 505 L 600 543" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <text x="615" y="528" class="arrow-label">public API</text>
+        <path d="M 600 635 L 600 648" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 600 674 L 600 686 L 357 686 L 357 698" fill="none" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+        <path d="M 600 674 L 600 686 L 843 686 L 843 698" fill="none" stroke="#fbbf24" stroke-width="1.5" marker-end="url(#arrow-amber)"/>
+        <path d="M 357 780 L 357 818" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 843 780 L 843 818" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 357 880 L 357 918" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <path d="M 843 880 L 843 918" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+
+        <!-- BUILD-TIME CONTROL PLANE -->
+        <rect x="20" y="25" width="1160" height="255" rx="12" fill="rgba(136, 19, 55, 0.025)" stroke="#fb7185" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="38" y="48" fill="#fb7185" class="region-label">01 · BUILD-TIME COMPOSITION / 构建与裁剪控制面</text>
+        <text x="1160" y="48" fill="#64748b" font-size="8" text-anchor="end">两个选择维度相互独立，最终在链接阶段汇合</text>
+
+        <text x="50" y="73" fill="#fb7185" font-size="8" font-weight="600">功能维度 · build what</text>
+        <g>
+          <title>Kconfig 树定义系统通用功能选项</title>
+          <rect x="50" y="80" width="155" height="50" rx="6" fill="#0f172a"/>
+          <rect x="50" y="80" width="155" height="50" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="127.5" y="101" class="box-title">Kconfig tree</text>
+          <text x="127.5" y="118" class="box-sub">内核 · IPC · 组件</text>
+        </g>
+        <g>
+          <rect x="242" y="80" width="125" height="50" rx="6" fill="#0f172a"/>
+          <rect x="242" y="80" width="125" height="50" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="304.5" y="101" class="box-title">.config</text>
+          <text x="304.5" y="118" class="box-sub">menuconfig 结果</text>
+        </g>
+        <g>
+          <rect x="402" y="80" width="150" height="50" rx="6" fill="#0f172a"/>
+          <rect x="402" y="80" width="150" height="50" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="477" y="101" class="box-title">Python generator</text>
+          <text x="477" y="118" class="box-sub">kconfig_to_rtconfig.py</text>
+        </g>
+        <g>
+          <rect x="587" y="80" width="140" height="50" rx="6" fill="#0f172a"/>
+          <rect x="587" y="80" width="140" height="50" rx="6" fill="rgba(136, 19, 55, 0.4)" stroke="#fb7185" stroke-width="1.5"/>
+          <text x="657" y="101" class="box-title">rtconfig.h</text>
+          <text x="657" y="118" class="box-sub">条件编译开关</text>
+        </g>
+
+        <text x="50" y="173" fill="#fbbf24" font-size="8" font-weight="600">硬件维度 · build for which board</text>
+        <g>
+          <rect x="50" y="180" width="155" height="50" rx="6" fill="#0f172a"/>
+          <rect x="50" y="180" width="155" height="50" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="127.5" y="201" class="box-title">CMakePresets.json</text>
+          <text x="127.5" y="218" class="box-sub">stm32f4 · cc2538</text>
+        </g>
+        <g>
+          <rect x="242" y="180" width="125" height="50" rx="6" fill="#0f172a"/>
+          <rect x="242" y="180" width="125" height="50" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="304.5" y="201" class="box-title">TARGET_BSP</text>
+          <text x="304.5" y="218" class="box-sub">唯一平台选择</text>
+        </g>
+        <g>
+          <rect x="402" y="180" width="150" height="50" rx="6" fill="#0f172a"/>
+          <rect x="402" y="180" width="150" height="50" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="477" y="201" class="box-title">BSP registry</text>
+          <text x="477" y="218" class="box-sub">BSP/CMakeLists.txt</text>
+        </g>
+        <g>
+          <rect x="587" y="180" width="175" height="50" rx="6" fill="#0f172a"/>
+          <rect x="587" y="180" width="175" height="50" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="674.5" y="199" class="box-title">Selected BSP contract</text>
+          <text x="674.5" y="215" class="box-sub">CPU · startup · port · linker · drivers</text>
+        </g>
+
+        <g>
+          <title>CMake 将 BSP、内核和应用三个对象库组合为唯一固件</title>
+          <rect x="805" y="105" width="190" height="100" rx="8" fill="#0f172a"/>
+          <rect x="805" y="105" width="190" height="100" rx="8" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="900" y="129" fill="white" font-size="12" font-weight="600" text-anchor="middle">CMake + Ninja</text>
+          <text x="900" y="149" class="box-sub">rtos_compile_settings</text>
+          <rect x="827" y="162" width="146" height="22" rx="4" fill="rgba(251, 146, 60, 0.25)" stroke="#fb923c" stroke-width="1"/>
+          <text x="900" y="177" fill="#fb923c" font-size="7" text-anchor="middle">bsp + kernel + application</text>
+          <text x="900" y="195" class="box-tiny">GNU Arm · --gc-sections</text>
+        </g>
+
+        <g>
+          <rect x="1032" y="105" width="125" height="100" rx="8" fill="#0f172a"/>
+          <rect x="1032" y="105" width="125" height="100" rx="8" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="1094.5" y="128" class="box-title">Firmware</text>
+          <text x="1094.5" y="149" class="box-sub">rtthread-&lt;bsp&gt;</text>
+          <text x="1094.5" y="170" fill="#a78bfa" font-size="8" text-anchor="middle">ELF · HEX · BIN</text>
+          <text x="1094.5" y="188" fill="#a78bfa" font-size="8" text-anchor="middle">MAP</text>
+        </g>
+
+        <text x="50" y="254" fill="#64748b" font-size="7.5">约束：BSP 私有头文件不向 Applications / Components 暴露；CPU/ABI 选项由所选 BSP 统一发布。</text>
+
+        <!-- RUNTIME PLANE -->
+        <rect x="20" y="305" width="1160" height="685" rx="12" fill="rgba(6, 78, 59, 0.02)" stroke="#34d399" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="38" y="329" fill="#34d399" class="region-label">02 · FIRMWARE RUNTIME / 固件运行面</text>
+        <text x="1160" y="329" fill="#64748b" font-size="8" text-anchor="end">公共应用与内核 · BSP 在编译期二选一</text>
+
+        <!-- Startup ribbon retained from the accepted region -->
+        <text x="205" y="349" fill="#94a3b8" font-size="7.5">启动控制流</text>
+        <g>
+          <rect x="220" y="356" width="85" height="32" rx="16" fill="#0f172a" stroke="#64748b"/>
+          <text x="262.5" y="376" class="step-text">1 · Reset</text>
+        </g>
+        <g>
+          <rect x="321" y="356" width="85" height="32" rx="16" fill="#0f172a" stroke="#64748b"/>
+          <text x="363.5" y="376" class="step-text">2 · entry()</text>
+        </g>
+        <g>
+          <rect x="422" y="356" width="115" height="32" rx="16" fill="#0f172a" stroke="#fbbf24"/>
+          <text x="479.5" y="376" class="step-text">3 · board_init</text>
+        </g>
+        <g>
+          <rect x="553" y="356" width="115" height="32" rx="16" fill="#0f172a" stroke="#34d399"/>
+          <text x="610.5" y="376" class="step-text">4 · kernel init</text>
+        </g>
+        <g>
+          <rect x="684" y="356" width="115" height="32" rx="16" fill="#0f172a" stroke="#34d399"/>
+          <text x="741.5" y="376" class="step-text">5 · scheduler</text>
+        </g>
+        <g>
+          <rect x="815" y="356" width="85" height="32" rx="16" fill="#0f172a" stroke="#22d3ee"/>
+          <text x="857.5" y="376" class="step-text">6 · main()</text>
+        </g>
+
+        <!-- Layered firmware architecture -->
+        <rect x="100" y="410" width="1000" height="570" rx="12" fill="rgba(251, 191, 36, 0.025)" stroke="#fbbf24" stroke-width="1" stroke-dasharray="8,4"/>
+        <text x="118" y="431" fill="#fbbf24" font-size="9" font-weight="600">FIRMWARE LAYERS · TARGET_BSP selects one lower lane</text>
+        <text x="1082" y="431" fill="#64748b" font-size="7.5" text-anchor="end">公共层保持不变 · 平台层互斥进入固件</text>
+
+        <g>
+          <rect x="140" y="445" width="920" height="60" rx="6" fill="#0f172a"/>
+          <rect x="140" y="445" width="920" height="60" rx="6" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee" stroke-width="1.5"/>
+          <text x="600" y="469" fill="white" font-size="12" font-weight="600" text-anchor="middle">应用与组件层 · Applications / Components / FinSH</text>
+          <text x="600" y="489" class="box-sub">main thread · shell thread · rt_kprintf · Components/ 预留扩展点（当前为空）</text>
+        </g>
+
+        <g>
+          <rect x="140" y="545" width="920" height="90" rx="6" fill="#0f172a"/>
+          <rect x="140" y="545" width="920" height="90" rx="6" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399" stroke-width="1.5"/>
+          <text x="600" y="570" fill="white" font-size="12" font-weight="600" text-anchor="middle">RT-Thread Nano 内核</text>
+          <text x="600" y="590" class="box-sub">线程与调度 · 1 kHz Tick / timer · semaphore / mailbox · small-mem heap · object</text>
+          <text x="600" y="608" class="box-sub">device framework · init framework · console / kservice · components/finsh</text>
+          <text x="600" y="625" fill="#34d399" font-size="7.5" text-anchor="middle">rtthread.h · rtdef.h · rthw.h · libcpu/arm/cortex-m*</text>
+        </g>
+
+        <rect x="465" y="650" width="270" height="24" rx="4" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c" stroke-width="1"/>
+        <text x="600" y="666" fill="#fb923c" font-size="7.5" text-anchor="middle">TARGET_BSP · exactly one branch enters the image</text>
+
+        <g>
+          <rect x="140" y="700" width="435" height="80" rx="6" fill="#0f172a"/>
+          <rect x="140" y="700" width="435" height="80" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="357.5" y="723" class="box-title">BSP / STM32F4</text>
+          <text x="357.5" y="742" class="box-sub">board · drv_usart · drv_rtc · Cortex-M4F CPU port</text>
+          <text x="357.5" y="758" class="box-sub">startup_stm32f407xx.s · STM32F407xx_FLASH.ld</text>
+          <text x="357.5" y="772" fill="#fbbf24" font-size="7" text-anchor="middle">USART1 interrupt RX · RTC · 168 MHz</text>
+        </g>
+        <g>
+          <rect x="625" y="700" width="435" height="80" rx="6" fill="#0f172a"/>
+          <rect x="625" y="700" width="435" height="80" rx="6" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="842.5" y="723" class="box-title">BSP / CC2538</text>
+          <text x="842.5" y="742" class="box-sub">board · drv_usart · Cortex-M3 CPU port</text>
+          <text x="842.5" y="758" class="box-sub">startup_gcc.c · cc2538_512_gcc.ld</text>
+          <text x="842.5" y="772" fill="#fbbf24" font-size="7" text-anchor="middle">polling UART0 · 32 MHz · 16 KiB heap</text>
+        </g>
+
+        <g>
+          <rect x="140" y="820" width="435" height="60" rx="6" fill="#0f172a"/>
+          <rect x="140" y="820" width="435" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="357.5" y="844" class="box-title">STM32 HAL + CMSIS</text>
+          <text x="357.5" y="864" class="box-sub">GPIO · UART · RTC · RCC · DMA · Flash · Cortex</text>
+        </g>
+        <g>
+          <rect x="625" y="820" width="435" height="60" rx="6" fill="#0f172a"/>
+          <rect x="625" y="820" width="435" height="60" rx="6" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa" stroke-width="1.5"/>
+          <text x="842.5" y="844" class="box-title">CC2538 DriverLib</text>
+          <text x="842.5" y="864" class="box-sub">gpio · ioc · sys_ctrl · systick · uart</text>
+        </g>
+
+        <g>
+          <rect x="140" y="920" width="435" height="45" rx="6" fill="#0f172a"/>
+          <rect x="140" y="920" width="435" height="45" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="357.5" y="939" class="box-title">STM32F407ZGT6</text>
+          <text x="357.5" y="956" class="box-sub">ARM Cortex-M4F · MMIO / IRQ</text>
+        </g>
+        <g>
+          <rect x="625" y="920" width="435" height="45" rx="6" fill="#0f172a"/>
+          <rect x="625" y="920" width="435" height="45" rx="6" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8" stroke-width="1.5"/>
+          <text x="842.5" y="939" class="box-title">CC2538F512</text>
+          <text x="842.5" y="956" class="box-sub">ARM Cortex-M3 · MMIO / IRQ</text>
+        </g>
+
+        <!-- Legend outside every boundary -->
+        <text x="35" y="1030" fill="white" font-size="10" font-weight="600">LEGEND</text>
+        <rect x="105" y="1020" width="18" height="12" rx="2" fill="rgba(8, 51, 68, 0.4)" stroke="#22d3ee"/>
+        <text x="130" y="1030" fill="#94a3b8" font-size="8">Application</text>
+        <rect x="235" y="1020" width="18" height="12" rx="2" fill="rgba(6, 78, 59, 0.4)" stroke="#34d399"/>
+        <text x="260" y="1030" fill="#94a3b8" font-size="8">Kernel</text>
+        <rect x="345" y="1020" width="18" height="12" rx="2" fill="rgba(120, 53, 15, 0.3)" stroke="#fbbf24"/>
+        <text x="370" y="1030" fill="#94a3b8" font-size="8">BSP / CPU port</text>
+        <rect x="515" y="1020" width="18" height="12" rx="2" fill="rgba(76, 29, 149, 0.4)" stroke="#a78bfa"/>
+        <text x="540" y="1030" fill="#94a3b8" font-size="8">Vendor driver</text>
+        <rect x="675" y="1020" width="18" height="12" rx="2" fill="rgba(30, 41, 59, 0.5)" stroke="#94a3b8"/>
+        <text x="700" y="1030" fill="#94a3b8" font-size="8">Hardware</text>
+        <rect x="805" y="1020" width="18" height="12" rx="2" fill="rgba(251, 146, 60, 0.3)" stroke="#fb923c"/>
+        <text x="830" y="1030" fill="#94a3b8" font-size="8">Compile-time choice</text>
+        <line x1="995" y1="1026" x2="1020" y2="1026" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-slate)"/>
+        <text x="1032" y="1030" fill="#94a3b8" font-size="8">Dependency</text>
+
+        <text x="600" y="1068" fill="#334155" font-size="7" text-anchor="middle">SOURCE-GROUNDED · CMakeLists.txt · CMakePresets.json · rtconfig.h · RT-Thread/src · BSP/*/Ports</text>
+      </svg>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot cyan"></div>
+          <h3>启动链与线程化入口</h3>
+        </div>
+        <ul>
+          <li>• 启动文件跳入 <code>entry()</code>，随后执行 <code>rtthread_startup()</code></li>
+          <li>• 板级初始化先建立时钟、Tick、堆与设备注册表</li>
+          <li>• 调度器启动后，main 线程先初始化组件，再调用应用 <code>main()</code></li>
+          <li>• FinSH 由 <code>INIT_APP_EXPORT</code> 创建独立 shell 线程</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot violet"></div>
+          <h3>稳定接口与可替换边界</h3>
+        </div>
+        <ul>
+          <li>• 应用经 <code>rt_device_find/open/read/write/control</code> 访问硬件</li>
+          <li>• <code>BSP/*/Ports</code> 把 RT-Thread 设备操作映射到厂商驱动</li>
+          <li>• CPU Port 封装 PendSV 上下文切换与 Cortex-M 差异</li>
+          <li>• 因而切换 BSP 不要求修改 Applications 或公共内核配置</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-dot emerald"></div>
+          <h3>当前配置与适用边界</h3>
+        </div>
+        <ul>
+          <li>• 已启用：设备框架、FinSH、堆、信号量、邮箱、控制台</li>
+          <li>• 未启用：mutex、event、message queue、软件定时器线程</li>
+          <li>• STM32F4 提供中断接收 UART 与 RTC；CC2538 控制台为轮询 UART</li>
+          <li>• <code>Components/</code> 当前为空，图中作为未来扩展缝而非现有模块</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer">RTOS-V1.0 · RT-Thread Nano · dual-plane architecture · Codex comparison edition · 2026-08-25</p>
+  </div>
+
+  <script>
+    async function copyAsImage(btn) {
+      const orig = btn.textContent;
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        btn.textContent = '✓ Copied!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPNG(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const link = document.createElement('a');
+        link.download = 'rtos-v1-architecture-codex.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+
+    async function downloadPDF(btn) {
+      const orig = btn.textContent;
+      btn.textContent = '⏳ ...';
+      try {
+        const el = document.getElementById('report-container');
+        const r = el.getBoundingClientRect();
+        const pad = 32;
+        const canvas = await html2canvas(document.body, { backgroundColor: '#020617', scale: 2, useCORS: true, ignoreElements: (e) => e.classList && e.classList.contains('toolbar'), x: r.left + window.scrollX - pad, y: r.top + window.scrollY - pad, width: r.width + pad * 2, height: r.height + pad * 2 });
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const orientation = canvas.width > canvas.height ? 'landscape' : 'portrait';
+        const pdf = new jsPDF({ orientation, unit: 'px', format: [canvas.width, canvas.height], hotfixes: ['px_scaling'] });
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save('rtos-v1-architecture-codex.pdf');
+        btn.textContent = '✓ Done!';
+      } catch (e) {
+        btn.textContent = '✗ Failed';
+      }
+      setTimeout(() => btn.textContent = orig, 2000);
+    }
+  </script>
+</body>
+</html>

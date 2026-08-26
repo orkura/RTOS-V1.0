@@ -29,6 +29,7 @@ __pycache__/
 # Local editor, IDE, and agent state
 /.codex/
 *.code-workspace
+/.workbuddy/
 
 # OS-generated files
 .DS_Store

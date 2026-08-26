@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Program the STM32F4 HEX image with SEGGER J-Link.
+"""Program an explicitly selected firmware image with SEGGER J-Link.
 
 This is the cross-platform Python counterpart of download.ps1.  It only
 downloads an existing image; invoke build.py first when a new image is needed.
@@ -19,23 +19,35 @@ from typing import Iterable
 
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Download an existing STM32F4 HEX image using SEGGER J-Link."
+        description="Download an explicitly selected firmware image using SEGGER J-Link."
     )
     parser.add_argument(
         "--jlink",
-        help="J-Link Commander executable or absolute path (default: find it on PATH).",
+        required=True,
+        help="J-Link Commander executable or absolute path; must be specified explicitly.",
     )
     parser.add_argument(
         "--firmware",
         type=Path,
-        help=(
-            "Firmware HEX file, relative to the project root when not absolute. "
-            "Default: build/stm32f4/rtthread-stm32f4.hex."
-        ),
+        required=True,
+        help="Firmware file, relative to the project root when not absolute; must be specified explicitly.",
     )
-    parser.add_argument("--device", default="STM32F407ZG", help="J-Link device name.")
-    parser.add_argument("--interface", default="SWD", help="Debug interface.")
-    parser.add_argument("--speed", type=int, default=4000, help="Debug speed in kHz.")
+    parser.add_argument(
+        "--device",
+        required=True,
+        help="J-Link device name; must be specified explicitly.",
+    )
+    parser.add_argument(
+        "--interface",
+        required=True,
+        help="Debug interface; must be specified explicitly.",
+    )
+    parser.add_argument(
+        "--speed",
+        type=int,
+        required=True,
+        help="Debug speed in kHz; must be specified explicitly.",
+    )
     return parser.parse_args()
 
 
@@ -55,11 +67,7 @@ def find_on_path(names: Iterable[str]) -> Path:
     raise FileNotFoundError(f"J-Link Commander is not available on PATH: {names_text}")
 
 
-def resolve_jlink(value: str | None) -> Path:
-    if value is None:
-        # SEGGER names the Linux binary JLinkExe and the Windows binary JLink.exe.
-        return find_on_path(("JLinkExe", "JLink"))
-
+def resolve_jlink(value: str) -> Path:
     supplied = Path(value).expanduser()
     if supplied.is_file():
         return supplied.resolve()
@@ -71,7 +79,7 @@ def main() -> int:
     project_root = Path(__file__).resolve().parent.parent
     jlink = resolve_jlink(arguments.jlink)
 
-    firmware = arguments.firmware or Path("build/stm32f4/rtthread-stm32f4.hex")
+    firmware = arguments.firmware
     if not firmware.is_absolute():
         firmware = project_root / firmware
     firmware = firmware.resolve()

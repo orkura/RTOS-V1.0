@@ -2,8 +2,8 @@
 """Configure and build one RT-Thread BSP with CMake and Ninja.
 
 This is the cross-platform Python counterpart of build.ps1.  It intentionally
-does not select a BSP implicitly from CMake files: --target-bsp is always
-validated here and then passed to CMake explicitly.
+does not select a BSP implicitly: --target-bsp must be supplied by the caller
+and is passed to CMake for project-level validation.
 """
 
 from __future__ import annotations
@@ -17,18 +17,17 @@ import sys
 from typing import Iterable
 
 
-SUPPORTED_BSPS = ("cc2538", "stm32f4")
-
-
 def parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Configure and build one RT-Thread BSP with CMake and Ninja."
     )
     parser.add_argument(
         "--target-bsp",
-        choices=SUPPORTED_BSPS,
-        default="stm32f4",
-        help="BSP selected through CMake TARGET_BSP (default: %(default)s).",
+        required=True,
+        help=(
+            "BSP selected through CMake TARGET_BSP; must be specified explicitly "
+            "and is validated by the project configuration."
+        ),
     )
     parser.add_argument(
         "--arm-toolchain-root",

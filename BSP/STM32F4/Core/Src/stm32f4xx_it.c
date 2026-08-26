@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+/* CubeMX original: #include "main.h" (reference: ../Inc/main.h.cubemx) */
 #include "stm32f4xx_conf.h"
 #include "stm32f4xx_it.h"
 /* Private includes ----------------------------------------------------------*/
@@ -56,7 +57,9 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+#if 0 /* CubeMX reference: USART1_IRQHandler is active in Ports/drv_usart.c. */
+extern UART_HandleTypeDef huart1;
+#endif
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -78,6 +81,23 @@ void NMI_Handler(void)
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
+
+#if 0 /* CubeMX reference: RT-Thread Cortex-M4 port owns HardFault_Handler. */
+/**
+  * @brief This function handles Hard fault interrupt.
+  */
+void HardFault_Handler(void)
+{
+  /* USER CODE BEGIN HardFault_IRQn 0 */
+
+  /* USER CODE END HardFault_IRQn 0 */
+  while (1)
+  {
+    /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+    /* USER CODE END W1_HardFault_IRQn 0 */
+  }
+}
+#endif
 
 /**
   * @brief This function handles Memory management fault.
@@ -150,6 +170,21 @@ void DebugMon_Handler(void)
   /* USER CODE END DebugMonitor_IRQn 1 */
 }
 
+#if 0 /* CubeMX reference: RT-Thread Cortex-M4 port owns PendSV_Handler. */
+/**
+  * @brief This function handles Pendable request for system service.
+  */
+void PendSV_Handler(void)
+{
+  /* USER CODE BEGIN PendSV_IRQn 0 */
+
+  /* USER CODE END PendSV_IRQn 0 */
+  /* USER CODE BEGIN PendSV_IRQn 1 */
+
+  /* USER CODE END PendSV_IRQn 1 */
+}
+#endif
+
 /**
   * @brief This function handles System tick timer.
   */
@@ -160,6 +195,7 @@ void SysTick_Handler(void)
   /* USER CODE END SysTick_IRQn 0 */
   HAL_IncTick();
   /* USER CODE BEGIN SysTick_IRQn 1 */
+  /* RT-Thread addition: update the kernel tick inside interrupt accounting. */
   bsp_systick_handler();
 
   /* USER CODE END SysTick_IRQn 1 */
@@ -171,6 +207,22 @@ void SysTick_Handler(void)
 /* For the available peripheral interrupt handler names,                      */
 /* please refer to the startup file (startup_stm32f4xx.s).                    */
 /******************************************************************************/
+
+#if 0 /* CubeMX reference: active USART1_IRQHandler is in Ports/drv_usart.c. */
+/**
+  * @brief This function handles USART1 global interrupt.
+  */
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
+
+  /* USER CODE END USART1_IRQn 0 */
+  HAL_UART_IRQHandler(&huart1);
+  /* USER CODE BEGIN USART1_IRQn 1 */
+
+  /* USER CODE END USART1_IRQn 1 */
+}
+#endif
 
 /* USER CODE BEGIN 1 */
 

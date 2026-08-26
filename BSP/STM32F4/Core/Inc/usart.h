@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+/* CubeMX original: #include "main.h" (reference: main.h.cubemx) */
 #include "stm32f4xx_conf.h"
 
 /* USER CODE BEGIN Includes */
