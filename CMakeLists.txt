@@ -83,11 +83,13 @@ target_compile_options(rtos_compile_settings INTERFACE ${SELECTED_BSP_CPU_COMPIL
 
 add_subdirectory(RT-Thread)
 add_subdirectory(Applications)
+add_subdirectory(Components)
 
 add_executable(rtthread
     $<TARGET_OBJECTS:${SELECTED_BSP_TARGET}>
     $<TARGET_OBJECTS:rtthread_kernel>
-    $<TARGET_OBJECTS:application>)
+    $<TARGET_OBJECTS:application>
+    $<TARGET_OBJECTS:libc_heap_adapter>)
 
 set(RTTHREAD_BASENAME "rtthread-${TARGET_BSP}")
 set(RTTHREAD_MAP_FILE "${CMAKE_CURRENT_BINARY_DIR}/${RTTHREAD_BASENAME}.map")
