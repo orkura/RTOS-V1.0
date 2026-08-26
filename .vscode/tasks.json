@@ -56,20 +56,51 @@
       "group": "build"
     },
     {
-      "label": "Download STM32F4",
+      "label": "Download STM32F4 Debug",
       "type": "process",
-      "command": "C:/msys64/usr/bin/bash.exe",
+      "command": "${workspaceFolder}/.venv/bin/python.exe",
       "args": [
-        "-lc",
-        ". .venv/bin/activate && python Scripts/download.py --jlink /d/App/Code/JLink/JLink_V968a/JLink.exe"
+        "Scripts/download.py",
+        "--jlink",
+        "D:/App/Code/JLink/JLink_V968a/JLink.exe",
+        "--firmware",
+        "build/stm32f4-debug/rtthread-stm32f4.hex",
+        "--device",
+        "STM32F407ZG",
+        "--interface",
+        "SWD",
+        "--speed",
+        "4000"
       ],
       "options": {
-        "cwd": "${workspaceFolder}",
-        "env": {
-          "MSYSTEM": "UCRT64",
-          "CHERE_INVOKING": "1"
-        }
+        "cwd": "${workspaceFolder}"
       },
+      "dependsOn": "Build STM32F4 Debug",
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Download STM32F4 Release",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python.exe",
+      "args": [
+        "Scripts/download.py",
+        "--jlink",
+        "D:/App/Code/JLink/JLink_V968a/JLink.exe",
+        "--firmware",
+        "build/stm32f4-release/rtthread-stm32f4.hex",
+        "--device",
+        "STM32F407ZG",
+        "--interface",
+        "SWD",
+        "--speed",
+        "4000"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Build STM32F4 Release",
+      "dependsOrder": "sequence",
       "problemMatcher": []
     }
   ]
