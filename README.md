@@ -94,19 +94,31 @@ Application / Component
 
 本项目通过 CMake 缓存变量 `TARGET_BSP` 选择目标 BSP。配置阶段，CMake 根据该变量仅引入对应的 BSP 目录，并生成由 Ninja 执行的构建规则；该 BSP 负责提供启动文件、链接脚本、CPU 编译选项、RT-Thread CPU Port 及板级驱动。构建时，Ninja 按依赖关系调用 GNU Arm Embedded Toolchain 的 `arm-none-eabi-gcc`，完成 C、汇编源码的交叉编译和链接，并生成目标芯片所需的固件文件。因此，切换 BSP 时无需修改 `Applications/`、`Components/` 或顶层 `rtconfig.h`。
 
-```shell
-# 构建 STM32F4 BSP
-cmake --preset stm32f4
-cmake --build --preset stm32f4
-# 清理当前 BSP 的构建产物并重新构建，同时逐行显示简洁的编译进度
-cmake --build --preset stm32f4 --clean-first 2>&1 | cat
+```powershell
+$env:Path = "C:\msys64\ucrt64\bin;$env:Path"
 
-# 构建 CC2538 BSP
-cmake --preset cc2538
-cmake --build --preset cc2538
-# 清理当前 BSP 的构建产物并重新构建，同时逐行显示简洁的编译进度
-cmake --build --preset cc2538 --clean-first 2>&1 | cat
+# 先查看当前实际可用的配置和构建 Preset
+cmake --list-presets=configure
+cmake --list-presets=build
+
+# STM32F4 Debug
+cmake --preset stm32f4-debug
+cmake --build --preset stm32f4-debug
+
+# STM32F4 Release
+cmake --preset stm32f4-release
+cmake --build --preset stm32f4-release
+
+# CC2538 Debug
+cmake --preset cc2538-debug
+cmake --build --preset cc2538-debug
+
+# CC2538 Release
+cmake --preset cc2538-release
+cmake --build --preset cc2538-release
 ```
+
+Debug 使用 `-Og -g3`，便于源码级调试；Release 使用 CMake 为 GNU 工具链提供的发布优化并定义 `NDEBUG`。四种组合分别写入 `build/<bsp>-debug` 和 `build/<bsp>-release`，不得让不同构建类型共用同一个构建目录。需要清理当前组合并全量重编时，在对应构建命令末尾添加 `--clean-first`。
 
 切换不同 BSP 的核心逻辑：
 
@@ -132,7 +144,7 @@ Kconfig → menuconfig → .config → Scripts/kconfig_to_rtconfig.py → rtconf
 
 ### GDB 调试
 
-本项目通过 VS Code 的 Cortex-Debug 扩展配合 SEGGER J-Link 进行 STM32F4 BSP 的在线调试。调试配置位于 `.vscode/launch.json`：启动调试前会执行 `Build STM32F4` 任务生成 `build/stm32f4/rtthread-stm32f4.elf`，随后启动 J-Link GDB Server，并由 `gdb-multiarch` 连接目标芯片。
+本项目通过 VS Code 的 Cortex-Debug 扩展配合 SEGGER J-Link 进行 STM32F4 BSP 的在线调试。调试配置位于 `.vscode/launch.json`：启动调试前会依次执行 `Configure STM32F4 Debug` 和 `Build STM32F4 Debug` 任务，生成 `build/stm32f4-debug/rtthread-stm32f4.elf`，随后启动 J-Link GDB Server，并由 `gdb-multiarch` 连接目标芯片。
 
 在 VS Code 中选择 **Debug STM32F4 (J-Link)** 并按 `F5` 即可启动调试。程序会在 `main` 函数处暂停，之后可设置断点、单步执行、查看调用栈、寄存器和变量。
 

@@ -2,18 +2,57 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Build STM32F4",
+      "label": "Configure STM32F4 Debug",
+      "type": "process",
+      "command": "C:/msys64/ucrt64/bin/cmake.exe",
+      "args": [
+        "--preset",
+        "stm32f4-debug"
+      ],
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Build STM32F4 Debug",
       "type": "process",
       "command": "C:/msys64/ucrt64/bin/cmake.exe",
       "args": [
         "--build",
         "--preset",
-        "stm32f4",
+        "stm32f4-debug",
         "--target",
         "rtthread",
         "--parallel"
       ],
       "problemMatcher": "$gcc",
+      "dependsOn": "Configure STM32F4 Debug",
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
+      "label": "Configure STM32F4 Release",
+      "type": "process",
+      "command": "C:/msys64/ucrt64/bin/cmake.exe",
+      "args": [
+        "--preset",
+        "stm32f4-release"
+      ],
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Build STM32F4 Release",
+      "type": "process",
+      "command": "C:/msys64/ucrt64/bin/cmake.exe",
+      "args": [
+        "--build",
+        "--preset",
+        "stm32f4-release",
+        "--target",
+        "rtthread",
+        "--parallel"
+      ],
+      "problemMatcher": "$gcc",
+      "dependsOn": "Configure STM32F4 Release",
+      "dependsOrder": "sequence",
       "group": "build"
     },
     {

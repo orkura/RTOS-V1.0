@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Configure and build one RT-Thread BSP with CMake and Ninja.
 
-This is the cross-platform Python counterpart of build.ps1.  It intentionally
-does not select a BSP implicitly: --target-bsp must be supplied by the caller
-and is passed to CMake for project-level validation.
+This helper intentionally does not select a BSP or build type implicitly:
+--target-bsp and --build-type must be supplied by the caller and are passed to
+CMake for project-level validation.
 """
 
 from __future__ import annotations
@@ -28,6 +28,12 @@ def parse_arguments() -> argparse.Namespace:
             "BSP selected through CMake TARGET_BSP; must be specified explicitly "
             "and is validated by the project configuration."
         ),
+    )
+    parser.add_argument(
+        "--build-type",
+        required=True,
+        choices=("Debug", "Release"),
+        help="CMake build type; must be Debug or Release.",
     )
     parser.add_argument(
         "--arm-toolchain-root",
@@ -119,7 +125,11 @@ def main() -> int:
     compiler, toolchain_bin = resolve_compiler(arguments.arm_toolchain_root)
 
     if arguments.build_directory is None:
-        build_directory = project_root / "build" / arguments.target_bsp
+        build_directory = (
+            project_root
+            / "build"
+            / f"{arguments.target_bsp}-{arguments.build_type.lower()}"
+        )
     elif arguments.build_directory.is_absolute():
         build_directory = arguments.build_directory
     else:
@@ -140,6 +150,7 @@ def main() -> int:
 
     print(f"Project:       {project_root}")
     print(f"BSP:           {arguments.target_bsp}")
+    print(f"Build type:    {arguments.build_type}")
     print(f"Build dir:     {build_directory}")
     print(f"CMake:         {cmake}")
     print(f"Ninja:         {ninja}")
@@ -159,6 +170,7 @@ def main() -> int:
         f"-DCMAKE_ASM_COMPILER={compiler}",
         f"-DCMAKE_MAKE_PROGRAM={ninja}",
         f"-DTARGET_BSP={arguments.target_bsp}",
+        f"-DCMAKE_BUILD_TYPE={arguments.build_type}",
     ]
     if arguments.fresh:
         configure_arguments.insert(1, "--fresh")

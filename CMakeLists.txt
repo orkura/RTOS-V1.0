@@ -19,6 +19,19 @@ if(NOT CMAKE_C_COMPILER_ID STREQUAL "GNU")
     message(FATAL_ERROR "This project currently supports the GNU Arm Embedded Toolchain only.")
 endif()
 
+# Ninja is a single-config generator, so every build directory must select one
+# explicit configuration.  Keeping Debug and Release in separate preset-owned
+# directories prevents flags and cached results from leaking between modes.
+set(_supported_build_types Debug Release)
+if(CMAKE_CONFIGURATION_TYPES)
+    message(FATAL_ERROR "This project currently supports single-config generators only.")
+endif()
+if(NOT CMAKE_BUILD_TYPE IN_LIST _supported_build_types)
+    message(FATAL_ERROR
+        "CMAKE_BUILD_TYPE must be Debug or Release; got '${CMAKE_BUILD_TYPE}'.")
+endif()
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS Debug Release)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # RT-Thread feature selection is platform-independent.  The selected BSP owns
@@ -35,8 +48,10 @@ target_include_directories(rtos_compile_settings INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/RT-Thread/components/finsh")
 target_compile_features(rtos_compile_settings INTERFACE c_std_11)
 target_compile_options(rtos_compile_settings INTERFACE
-    # Debug information
-    -g3
+    # Debug builds retain detailed DWARF information and use an optimization
+    # level designed to preserve a useful source-level debugging experience.
+    $<$<CONFIG:Debug>:-Og>
+    $<$<CONFIG:Debug>:-g3>
 
     # Section-level dead-code elimination
     -ffunction-sections

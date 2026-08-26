@@ -25,35 +25,67 @@
             }
         },
         {
-            "name": "cc2538",
-            "displayName": "CC2538",
-            "description": "Build the CC2538 BSP in build/cc2538.",
+            "name": "cc2538-debug",
+            "displayName": "CC2538 Debug",
+            "description": "Build the CC2538 BSP in Debug mode.",
 
             "inherits": "base",
             "cacheVariables": {
-                "TARGET_BSP": "cc2538"
+                "TARGET_BSP": "cc2538",
+                "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
-            "name": "stm32f4",
-            "displayName": "STM32F4",
-            "description": "Build the STM32F4 BSP in build/stm32f4.",
+            "name": "cc2538-release",
+            "displayName": "CC2538 Release",
+            "description": "Build the CC2538 BSP in Release mode.",
 
             "inherits": "base",
             "cacheVariables": {
-                "TARGET_BSP": "stm32f4"
+                "TARGET_BSP": "cc2538",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "stm32f4-debug",
+            "displayName": "STM32F4 Debug",
+            "description": "Build the STM32F4 BSP in Debug mode.",
+
+            "inherits": "base",
+            "cacheVariables": {
+                "TARGET_BSP": "stm32f4",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "stm32f4-release",
+            "displayName": "STM32F4 Release",
+            "description": "Build the STM32F4 BSP in Release mode.",
+
+            "inherits": "base",
+            "cacheVariables": {
+                "TARGET_BSP": "stm32f4",
+                "CMAKE_BUILD_TYPE": "Release"
             }
         }
     ],
 
     "buildPresets": [
         {
-            "name": "cc2538",
-            "configurePreset": "cc2538"
+            "name": "cc2538-debug",
+            "configurePreset": "cc2538-debug"
         },
         {
-            "name": "stm32f4",
-            "configurePreset": "stm32f4"
+            "name": "cc2538-release",
+            "configurePreset": "cc2538-release"
+        },
+        {
+            "name": "stm32f4-debug",
+            "configurePreset": "stm32f4-debug"
+        },
+        {
+            "name": "stm32f4-release",
+            "configurePreset": "stm32f4-release"
         }
     ]
 }
