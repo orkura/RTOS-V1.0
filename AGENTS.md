@@ -2,19 +2,23 @@
 
 ## 变更确认规则
 
-除非用户在当前请求中明确授权，否则不得自动修改任何文件内容，也不得执行任何 Git 操作（包括但不限于暂存、提交、切换分支、合并、拉取、推送、重置或清理）。在准备进行此类操作前，必须说明拟执行的具体操作及其影响，并等待用户明确确认。
+- 除非用户在当前请求中明确授权，否则不得修改任何文件，也不得执行任何 Git 操作，包括暂存、提交、切换分支、合并、拉取、推送、重置和清理等。
+- 在创建、修改或删除文件前，必须列出拟操作文件的名称和完整路径。修改内容较短时，直接给出拟修改内容；内容较长时，简要说明修改范围、主要内容及影响。
+- 说明拟执行的操作及其影响后，必须等待用户明确确认，方可执行。
 
 ## 终端环境
 
-Agent 默认在 Windows PowerShell 中执行构建、测试和其他命令。常规任务不得启动 MSYS2 Bash 或登录 Shell，以避免沙箱账户映射、HOME 初始化和临时目录权限问题。
+所有构建、配置、测试、下载、调试及其他依赖项目工具链的命令，必须在 Windows PowerShell 中执行，不得使用 MSYS2 Bash 或登录 Shell。
 
-项目使用 MSYS2 UCRT64 提供的 Windows 原生工具。执行构建前，将其 `bin` 目录加入**当前 PowerShell 进程的 PATH**：
+每次新建 PowerShell 会话后，在执行上述命令前，必须先将 MSYS2 UCRT64 的 `bin` 目录加入该会话的 PATH：
 
 ```powershell
 $env:Path = "C:\msys64\ucrt64\bin;$env:Path"
 ```
 
-该设置只影响当前 PowerShell 进程及其子进程，不得为此永久修改 Windows PATH。不要把 `C:\msys64\usr\bin` 加入 PATH。若任务确实依赖 Bash 或其他 MSYS2 POSIX 工具，先说明原因和影响并等待用户确认，不得自动切换环境。
+PATH 设置必须与后续命令处于同一个 PowerShell 会话中。不得假定其他终端调用设置的 PATH 仍然有效；若每条终端命令都会启动独立进程，则必须在该命令中先设置 PATH，再执行实际操作。
+
+该设置只能影响当前 PowerShell 进程及其子进程，不得永久修改 Windows PATH，也不得将 `C:\msys64\usr\bin` 加入 PATH。确需 Bash 或其他 MSYS2 POSIX 工具时，必须先说明原因和影响，并等待用户明确确认。
 
 ## Python 虚拟环境
 
@@ -28,7 +32,14 @@ $env:Path = "C:\msys64\ucrt64\bin;$env:Path"
 
 ## 构建与下载
 
-Preset 的统一语法为 `--preset <preset-name>`。可用 BSP 及 Preset 名称不得在本文件中写成固定枚举；每次以当前 `CMakePresets.json` 为准，先通过 `cmake --list-presets=configure` 和 `cmake --list-presets=build` 获取实际可用模式。
+Preset 统一使用 `--preset <preset-name>` 语法。不得预设或硬编码 BSP、配置 Preset及构建 Preset的名称。每轮对话首次执行配置、构建、测试或下载前，必须在项目根目录运行以下命令，获取当前实际可用的 Preset：
+
+```powershell
+cmake --list-presets=configure
+cmake --list-presets=build
+```
+
+后续操作应以本次查询结果及项目根目录下的 `CMakePresets.json` 为准。
 
 ### BSP 与构建类型选择及会话状态
 
@@ -41,7 +52,7 @@ Preset 的统一语法为 `--preset <preset-name>`。可用 BSP 及 Preset 名�
 
 构建使用当前 BSP 与构建类型对应的 CMake Preset，并在项目根目录通过 PowerShell 执行。配置 Preset 和构建 Preset 可能同名，也可能不同，应以 `CMakePresets.json` 中的关联关系为准：
 
-- 配置：`cmake --preset <configure-preset>`。
+- 配置：`cmake --preset <configure-preset>`。配置成功后，根据该 configure Preset 的实际 `binaryDir` 定位其 `compile_commands.json`；若文件已生成，必须执行 `cmake -E copy_if_different "<binaryDir>/compile_commands.json" "<sourceDir>/build/compile_commands.json"`，将其同步到 VS Code 使用的固定路径。不得依赖 VS Code CMake Tools 的 `cmake.copyCompileCommands` 自动复制，也不得假定 configure Preset 名称与目录名固定；切换构建组合并重新配置后同样执行此同步。
 - 增量构建：`cmake --build --preset <build-preset>`。
 - 清理当前构建组合的已知构建产物并全量重编：先执行配置命令，再执行 `cmake --build --preset <build-preset> --clean-first`。
 - 构建成功后，根据 Preset 的 `binaryDir` 和实际构建输出确认当前构建组合所需的 ELF、HEX、BIN、MAP 或其他产物，不得假定固定目录或文件名，并同时报告 BSP 与构建类型。
