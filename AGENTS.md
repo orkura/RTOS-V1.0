@@ -8,21 +8,21 @@
 
 ## 终端环境
 
-所有构建、配置、测试、下载、调试及其他依赖项目工具链的命令，必须在 Windows PowerShell 中执行，不得使用 MSYS2 Bash 或登录 Shell。
+本项目统一使用 PowerShell 作为命令行环境，包括 Windows PowerShell（`powershell.exe`）和 PowerShell 7+（`pwsh.exe`），并在其中使用 MSYS2 UCRT64 提供的工具。不得使用 MSYS2 Bash 或登录 Shell。
 
-每次新建 PowerShell 会话后，在执行上述命令前，必须先将 MSYS2 UCRT64 的 `bin` 目录加入该会话的 PATH：
+每次新建 PowerShell 进程或会话后，必须确保 `C:\msys64\ucrt64\bin` 位于当前进程 `PATH` 的最前面。若终端配置尚未提供该环境，应在同一会话或同一次命令调用中执行：
 
 ```powershell
 $env:Path = "C:\msys64\ucrt64\bin;$env:Path"
 ```
 
-PATH 设置必须与后续命令处于同一个 PowerShell 会话中。不得假定其他终端调用设置的 PATH 仍然有效；若每条终端命令都会启动独立进程，则必须在该命令中先设置 PATH，再执行实际操作。
+不得假定其他终端或先前进程中的环境修改仍然有效。该设置只能影响当前 PowerShell 进程及其子进程，不得永久修改 Windows 的系统或用户 `PATH`，也不得将 `C:\msys64\usr\bin` 加入 `PATH`。
 
-该设置只能影响当前 PowerShell 进程及其子进程，不得永久修改 Windows PATH，也不得将 `C:\msys64\usr\bin` 加入 PATH。确需 Bash 或其他 MSYS2 POSIX 工具时，必须先说明原因和影响，并等待用户明确确认。
+确需 Bash 或其他 MSYS2 POSIX 工具时，必须先说明原因和影响，并等待用户明确确认。
 
-## Python 虚拟环境
+## 虚拟环境
 
-项目的 Python 虚拟环境位于 `.venv`，由 UCRT64 Python 创建。PowerShell 中无需激活虚拟环境，直接调用其解释器：
+本项目的 Python 虚拟环境位于 `.venv`，由 UCRT64 Python 创建。PowerShell 中无需激活虚拟环境，直接调用其解释器：
 
 ```powershell
 & .\.venv\bin\python.exe <参数>
@@ -32,7 +32,9 @@ PATH 设置必须与后续命令处于同一个 PowerShell 会话中。不得假
 
 ## 构建与下载
 
-Preset 统一使用 `--preset <preset-name>` 语法。不得预设或硬编码 BSP、配置 Preset及构建 Preset的名称。每轮对话首次执行配置、构建、测试或下载前，必须在项目根目录运行以下命令，获取当前实际可用的 Preset：
+### 预设信息查询
+
+Preset 统一使用 `--preset <preset-name>` 语法。每轮对话首次执行配置、构建、测试或下载前，必须在项目根目录运行以下命令，获取当前实际可用的 Preset：
 
 ```powershell
 cmake --list-presets=configure
@@ -41,12 +43,13 @@ cmake --list-presets=build
 
 后续操作应以本次查询结果及项目根目录下的 `CMakePresets.json` 为准。
 
-### BSP 与构建类型选择及会话状态
+预设配置的名字一般为`<BSP>-Debug/Release`，BSP选择不同的地板，Debug 和 Release 为构建类型。
 
-- 每个新对话都独立确定一次 BSP 和构建类型。若用户已经明确指定，则在当前 Preset 列表中核对并使用；若未指定，则列出实际可用模式，并在首次构建、测试或下载前询问，不得自行选择默认值。
-- 用户明确要求源码调试、断点或变量观察时，使用 Debug；明确要求发布、性能或最终固件时，使用 Release。仅要求“构建”而没有足够上下文时，仍需确认构建类型。
-- BSP 与构建类型的组合一经确认，即作为本轮对话的当前构建组合。后续构建、测试和下载均沿用该组合，不重复询问。
-- 只有用户明确要求切换 BSP、切换构建类型，或后续请求与当前组合明显冲突时，才重新确认。切换后，后续操作统一使用新的构建组合。
+### 配置
+
+每个新对话都独立确定一次 BSP 和构建类型。若用户已经明确指定，则在当前 Preset 列表中核对并使用；若未指定，则列出实际可用模式，并在首次构建、测试或下载前询问，不得自行选择默认值。
+
+用户明确要求源码调试、断点或变量观察时，构建类型选择 Debug；明确要求发布、性能或最终固件时，构建类型选择使用 Release。一般情况下，默认使用 Debug。
 
 ### 构建
 
@@ -59,58 +62,28 @@ cmake --list-presets=build
 
 ### 下载
 
-- 仅在用户明确要求下载固件时执行下载操作，并始终沿用本轮对话已经确认的当前 BSP 与构建类型，使用该构建组合实际生成的固件。
-- 下载前先从当前 BSP 的项目配置或文档确定下载工具、固件产物、芯片、接口和速度。若项目尚未定义这些信息，则先询问用户，不得沿用其他 BSP 的参数。
-- 只有当前 BSP 明确使用 J-Link 时，才使用以下 J-Link 流程。`Scripts/download.py` 不提供 J-Link、固件、设备、接口或速度的默认值，必须由用户选择或确认，并显式传入与当前 BSP 和目标硬件匹配的全部参数；缺少任何参数时不得执行下载。
-- 使用 J-Link 时，将其安装目录临时加入当前 PowerShell 进程的 PATH，并解析出已验证的 Commander 路径。以下尖括号参数必须替换为当前 BSP 的实际值：
+- 仅在用户明确要求时下载固件，并沿用本轮已确认的 BSP、构建类型及其实际产物。
+
+- 下载前从当前 BSP 的配置或文档确认下载工具、固件、芯片、接口和速度；信息缺失时先询问用户，不得借用其他 BSP 的参数。
+
+- 当前 BSP 明确使用 J-Link 时，临时将其安装目录加入本次 PowerShell 进程的 `PATH`，并向 `Scripts/download.py` 显式传入全部参数：
 
   ```powershell
   $jlinkDirectory = 'D:\App\Code\JLink\JLink_V968a'
   $env:Path = "$jlinkDirectory;$env:Path"
   $jlinkCommander = (Get-Command JLink.exe -ErrorAction Stop).Source
   
-  & .\.venv\bin\python.exe Scripts\download.py `
-      --jlink $jlinkCommander `
-      --firmware '<实际固件路径>' `
-      --device '<J-Link 设备名>' `
-      --interface '<调试接口>' `
-      --speed <速度_kHz>
+  & .\.venv\bin\python.exe Scripts\download.py 
+      --jlink $jlinkCommander 
+      --firmware '<实际固件路径>' 
+      --device '<J-Link 设备名>' 
+      --interface '<SWD 或 JTAG，一般使用 SWD>' 
+      --speed <速度_kHz，一般使用 4000>
   ```
+  
+- 本项目可用的设备名如下：
 
-  该 PATH 修改只影响当前 PowerShell 进程及其子进程，不得永久修改 Windows PATH。当前下载脚本不会自动读取 `JLINK` 环境变量，因此必须保留 `--jlink` 参数。
-- 若上述路径不可用，先运行 `& .\.venv\bin\python.exe Scripts\download.py --help`，再将 `$jlinkDirectory` 改为已验证的 J-Link 安装目录。
-- 若下载脚本失败或输出不足以定位问题，可在用户已经授权的下载目标、固件和硬件范围内直接调用 `$jlinkCommander`，通过 J-Link Commander CLI 观察连接、擦除、写入和复位过程并纠正参数。不得借此扩大芯片、接口、速度、固件或其他硬件操作范围；需要改变这些条件时先向用户说明并确认。
+  - `STM32F407ZG`
+  - `CC2538SF53`
 
-## 单片机调试
-
-调试沿用本轮对话已经确认的当前 BSP，并使用对应的 Debug 构建。若尚未确认 BSP 或构建类型，先按照“BSP 与构建类型选择及会话状态”处理；不得把其他 BSP 或构建类型的芯片、接口、速度、端口、ELF 或调试服务器参数直接套用到当前目标。
-
-### 调试前检查与授权边界
-
-- 先明确故障现象、复现条件及调试目标，并区分“保留运行现场”和“复位后调试启动过程”。调试服务器连接、暂停 CPU、单步和断点都会影响实时行为，执行前应向用户说明影响并取得调试授权。
-- 连接正在故障状态中的设备时，默认优先保留现场。在读取关键状态前不得下载固件、复位或擦除目标；若调试服务器可能在连接时自动复位或暂停，先查阅当前版本的帮助信息并显式选择符合本次目标的连接行为。
-- `reset`、`load`、擦除以及任何重新下载操作会破坏当前运行现场，只有用户明确要求或授权相应操作后才能执行。已有的一般调试授权不自动包含擦除或重新下载。
-- 使用与板上固件完全匹配且包含调试符号的 Debug ELF。根据 Debug Preset 的 `binaryDir` 和实际构建输出定位文件，不得误用 Release 目录中的 ELF，也不得假定固定路径或名称。若需要修改优化级别、调试信息或其他构建配置，按“变更确认规则”另行说明并等待授权。
-
-### 工具与连接
-
-- 默认在两个 Windows PowerShell 会话中分别运行调试服务器和 GDB，不启动 MSYS2 Bash 或登录 Shell。需要 UCRT64 工具时，仅为相关 PowerShell 进程临时追加 `C:\msys64\ucrt64\bin`。
-- 使用 `Get-Command arm-none-eabi-gdb -ErrorAction Stop` 和 `arm-none-eabi-gdb --version` 验证 GDB。使用当前 BSP 已确认的调试服务器；采用 J-Link 时，先在已验证的安装目录中解析实际存在的 GDB Server 程序并查看其帮助，不得把 J-Link Commander `JLink.exe` 当作 GDB Server，也不得假定 GDB Server 可执行文件名固定。
-- 调试服务器的设备名、接口、速度和 GDB 端口必须来自当前 BSP 配置或用户确认。启动服务器后，先确认探针、目标电压、目标芯片和连接状态正常，再从 GDB 加载当前 ELF 的符号并连接对应端口。
-- 保留现场模式下不执行 `load` 或复位；连接后仅在采集状态确有需要时暂停 CPU。启动过程调试可在获得授权后执行复位并暂停，再在 `Reset_Handler`、`main` 或实际相关入口设置断点。断点和观察点数量受 Cortex-M 硬件资源限制，应按定位需要最小化使用。
-
-### 定位、验证与收尾
-
-- 常规问题按“复现现象—设置最小断点或观察点—采集调用栈、寄存器、变量和内存—缩小触发条件”的顺序定位，避免仅凭单次停机位置下结论。
-- HardFault 等异常应在复位前优先采集 PC、LR、xPSR、MSP、PSP、异常栈帧以及 CFSR、HFSR、MMFAR、BFAR；结合 `EXC_RETURN` 判断异常前使用的栈及是否存在扩展栈帧，再将故障地址映射到 ELF 的源码和反汇编。
-- 调试 RTOS 问题时先确认调试服务器是否真正支持当前内核的线程感知；不支持时依据 ELF 符号检查当前线程、线程栈、调度器、中断嵌套和 IPC 对象，不得把不完整的 `info threads` 输出当作全部系统状态。
-- 定位完成后先向用户报告证据链和失效条件。需要修改代码时按“变更确认规则”处理；需要重新构建、下载和复测时分别遵守本文件对应规则。
-- 结束调试前确认用户期望的目标状态（继续运行、保持暂停或复位），再断开 GDB 并关闭调试服务器。响应中简要记录所用 BSP、构建类型、ELF、调试服务器参数、是否发生暂停/复位/下载、关键断点及诊断结论；失败时只保留直接相关的服务器和 GDB 输出。
-
-## 构建日志与响应策略
-
-构建时默认使用普通输出，不主动启用 `--verbose`、`-v` 或其他展开完整编译命令的选项，以避免产生无必要的日志和上下文消耗。
-
-- 构建成功时，不复述逐文件编译过程，只报告构建结果、目标 BSP、构建类型、固件产物路径和尺寸信息。
-- 构建失败时，优先保留并分析直接相关的错误、警告及必要上下文，省略与问题无关的正常编译进度。
-- 仅当普通日志不足以定位问题时，才启用 verbose 输出；定位完成后恢复普通输出。
+- 脚本失败或信息不足时，可在已授权的参数范围内直接使用 J-Link Commander 排查；改变固件或硬件参数前须重新确认。

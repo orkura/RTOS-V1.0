@@ -123,9 +123,44 @@ def main() -> int:
             "-CommanderScript",
             str(command_file_path),
         ]
-        subprocess.run(command, check=True)
-    except subprocess.CalledProcessError as error:
-        raise RuntimeError(f"J-Link download failed with exit code {error.returncode}.") from error
+        completed = subprocess.run(
+            command,
+            check=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+        )
+        output = completed.stdout or ""
+        print(output, end="" if output.endswith("\n") else "\n")
+
+        if completed.returncode != 0:
+            raise RuntimeError(
+                f"J-Link download failed with exit code {completed.returncode}."
+            )
+
+        error_markers = (
+            "****** Error:",
+            "Error occurred:",
+            "Could not connect to the target device.",
+            "Failed to initialize DAP.",
+        )
+        reported_errors = tuple(marker for marker in error_markers if marker in output)
+        if reported_errors:
+            raise RuntimeError(
+                "J-Link reported a target or programming error: "
+                + ", ".join(reported_errors)
+            )
+
+        download_marker = "Downloading file ["
+        download_offset = output.find(download_marker)
+        if download_offset < 0:
+            raise RuntimeError("J-Link did not start a firmware download.")
+
+        download_output = output[download_offset:]
+        if "O.K." not in {line.strip() for line in download_output.splitlines()}:
+            raise RuntimeError("J-Link did not report successful programming and verification.")
     finally:
         if command_file_path is not None:
             command_file_path.unlink(missing_ok=True)

@@ -5,9 +5,12 @@ if(TARGET_BSP STREQUAL "cc2538")
     add_subdirectory(CC2538)
 elseif(TARGET_BSP STREQUAL "stm32f4")
     add_subdirectory(STM32F4)
+elseif(TARGET_BSP STREQUAL "stm32h743vit")
+    add_subdirectory(STM32H743VIT)
 else()
     message(FATAL_ERROR
-        "Unsupported TARGET_BSP='${TARGET_BSP}'. Supported values: cc2538, stm32f4.")
+        "Unsupported TARGET_BSP='${TARGET_BSP}'. Supported values: "
+        "cc2538, stm32f4, stm32h743vit.")
 
 endif()
 

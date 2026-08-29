@@ -3,14 +3,15 @@ cmake_minimum_required(VERSION 3.20)
 # TARGET_BSP is intentionally checked before project() so a missing hardware
 # target fails before CMake performs a cross-compiler probe.
 set(TARGET_BSP "" CACHE STRING
-    "Hardware BSP target: cc2538 or stm32f4")
+    "Hardware BSP target: cc2538, stm32f4, or stm32h743vit")
 set_property(CACHE TARGET_BSP PROPERTY STRINGS
     cc2538
-    stm32f4)
+    stm32f4
+    stm32h743vit)
 
 if(TARGET_BSP STREQUAL "")
     message(FATAL_ERROR
-        "TARGET_BSP is required. Use -DTARGET_BSP=cc2538 or stm32f4.")
+        "TARGET_BSP is required. Use -DTARGET_BSP=cc2538, stm32f4, or stm32h743vit.")
 endif()
 
 project(rtos LANGUAGES C ASM)
@@ -105,6 +106,11 @@ add_executable(rtthread
     $<TARGET_OBJECTS:rtthread_kernel>
     $<TARGET_OBJECTS:application>
     $<TARGET_OBJECTS:libc_heap_adapter>)
+
+if(TARGET segger_rtt_component)
+    target_sources(rtthread PRIVATE
+        $<TARGET_OBJECTS:segger_rtt_component>)
+endif()
 
 set(RTTHREAD_BASENAME "rtthread-${TARGET_BSP}")
 set(RTTHREAD_MAP_FILE "${CMAKE_CURRENT_BINARY_DIR}/${RTTHREAD_BASENAME}.map")

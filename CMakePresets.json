@@ -67,6 +67,28 @@
                 "TARGET_BSP": "stm32f4",
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "stm32h743vit-debug",
+            "displayName": "STM32H743VIT Debug",
+            "description": "Build the STM32H743VIT6 BSP in Debug mode.",
+
+            "inherits": "base",
+            "cacheVariables": {
+                "TARGET_BSP": "stm32h743vit",
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "stm32h743vit-release",
+            "displayName": "STM32H743VIT Release",
+            "description": "Build the STM32H743VIT6 BSP in Release mode.",
+
+            "inherits": "base",
+            "cacheVariables": {
+                "TARGET_BSP": "stm32h743vit",
+                "CMAKE_BUILD_TYPE": "Release"
+            }
         }
     ],
 
@@ -86,6 +108,14 @@
         {
             "name": "stm32f4-release",
             "configurePreset": "stm32f4-release"
+        },
+        {
+            "name": "stm32h743vit-debug",
+            "configurePreset": "stm32h743vit-debug"
+        },
+        {
+            "name": "stm32h743vit-release",
+            "configurePreset": "stm32h743vit-release"
         }
     ]
 }

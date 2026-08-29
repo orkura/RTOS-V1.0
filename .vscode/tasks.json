@@ -102,6 +102,57 @@
       "dependsOn": "Build STM32F4 Release",
       "dependsOrder": "sequence",
       "problemMatcher": []
+    },
+    {
+      "label": "Configure STM32H743VIT Debug",
+      "type": "process",
+      "command": "C:/msys64/ucrt64/bin/cmake.exe",
+      "args": [
+        "--preset",
+        "stm32h743vit-debug"
+      ],
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "Build STM32H743VIT Debug",
+      "type": "process",
+      "command": "C:/msys64/ucrt64/bin/cmake.exe",
+      "args": [
+        "--build",
+        "--preset",
+        "stm32h743vit-debug",
+        "--target",
+        "rtthread",
+        "--parallel"
+      ],
+      "problemMatcher": "$gcc",
+      "dependsOn": "Configure STM32H743VIT Debug",
+      "dependsOrder": "sequence",
+      "group": "build"
+    },
+    {
+      "label": "Download STM32H743VIT Debug",
+      "type": "process",
+      "command": "${workspaceFolder}/.venv/bin/python.exe",
+      "args": [
+        "Scripts/download.py",
+        "--jlink",
+        "D:/App/Code/JLink/JLink_V968a/JLink.exe",
+        "--firmware",
+        "build/stm32h743vit-debug/rtthread-stm32h743vit.hex",
+        "--device",
+        "STM32H743VI",
+        "--interface",
+        "SWD",
+        "--speed",
+        "4000"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "Build STM32H743VIT Debug",
+      "dependsOrder": "sequence",
+      "problemMatcher": []
     }
   ]
 }
